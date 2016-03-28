@@ -22,41 +22,58 @@ sub COMPONENT {
     die "Can't find a template for your View";
   }
 
-  my @directives;
-  if(ref($args->{directives}) eq 'ARRAY') {
-    @directives = @{delete $args->{directives}};
-  } 
+  my $directives = delete $args->{directives};
+
+  my $pure;
+  warn ref $directives;
+  if(ref($directives) eq 'CODE') {
+    $pure = Template::Pure->new(
+      template=> $template, 
+      directives_cb=>[]);
+
+    $pure->{directives_cb} = $directives;
+  } else {
+    $pure = Template::Pure->new(
+      template=> $template, 
+      directives=>$directives);
+  }
 
   return bless +{
-    pure => Template::Pure->new(
-      template=> $template, 
-        directives=>\@directives),
-    args => $args,
+    pure => $pure,
+    %$args,
   }, $class;
 }
 
 sub ACCEPT_CONTEXT {
   my ($self, $c, %args) = @_;
+
+  my $args = $self->merge_config_hashes($self->config, \%args);
+
+  delete $args->{directives};
+  delete $args->{template};
+  delete $args->{template_src};
+
+
   my $key = blessed($self) ? refaddr($self) : $self;
   my $data = hash();
 
   if(blessed $c) {
     return $c->stash->{"__Pure_${key}"} ||= do {
       $self->on_response($c, $data) if $self->can('on_response');
-      bless +{
+      ref($self)->new(
+        %{$args},
         ctx => $c,
         pure => $self->{pure},
-        args => +{ %{$self->{args}}, %args },
         data => $data,
-      }, ref($self);
+      );
     } 
   } else {
-    return bless +{
-        app => $c,
-        pure => $self->{pure},
-        args => +{ %{$self->{args}}, %args },
-        data => $data,
-    }, ref($self);
+    return ref($self)->new(
+      %{$args},
+      app => $c,
+      pure => $self->{pure},
+      data => $data,
+    );
   }
 }
 
@@ -74,8 +91,7 @@ sub response {
     $res->headers->push_header(@headers);
   }
 
-  my %data = ($self->{data}->all,
-    %{$self->{args}});
+  my %data = ($self->{data}->all, self=>$self);
   
   if(ref($proto[0]) eq 'HASH') {
     %data = (%data, %{$proto[0]});
@@ -88,11 +104,9 @@ sub response {
 
 sub render_with_extra_directives {
   my ($self, $data) = @_;
-  my @extra_directives;
-  if($self->{args}{directives}) {
-    @extra_directives = $self->{args}{directives}->(
-      $self->{pure}, $self->{ctx});
-  }
+  my @extra_directives = $self->{pure}{directives_cb}->($self->{pure}, $self->{ctx})
+    if exists $self->{pure}{directives_cb};
+  
   return $self->{pure}->render($data, \@extra_directives)
 }
 
@@ -103,8 +117,10 @@ sub TO_HTML {
   # but it will eventually break when we all real data objects.
   # At that point maybe need Template::Pure::DataProxy???
 
-  my %data = ($self->{data}->all,
-    %{$data||+{}});
+  my %data = (
+    $self->{data}->all,
+    self => $self,
+    %{$data||+{}} );
 
   return $self->{pure}->encoded_string(
     $self->render_with_extra_directives(\%data));

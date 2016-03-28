@@ -5,12 +5,12 @@ package RangersCCG::Web::View::Base;
 
 use base 'Catalyst::View::Pure';
 
-sub on_response {
-  my ($self, $c, $data) = @_;
-  $data->set('time', scalar(localtime));
-}
+__PACKAGE__->mk_accessors('init_time');
+
+sub time { scalar(localtime) }
 
 __PACKAGE__->config(
+  init_time => scalar(localtime),
   template => qq[
     <!doctype html>
     <html lang="en">
@@ -23,12 +23,14 @@ __PACKAGE__->config(
       <body>
         <h1>Content goes here!</h1>
         <span id="time">current time</span>
+        ...<span id="init-time">start time</span>...
       </body>
     </html>
   ],
   directives => [
     'title' => 'title',
     '^body h1' => 'body',
-    '#time' => 'time',
+    '#time' => 'self.time',
+    '#init-time' => 'self.init_time',
   ],
 );
