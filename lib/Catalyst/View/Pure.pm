@@ -6,6 +6,7 @@ package Catalyst::View::Pure;
 use Template::Pure;
 use Data::Perl qw/hash/;
 use Scalar::Util qw/blessed refaddr/;
+use Catalyst::Plugin::MapComponentDependencies::Utils;
 
 use base 'Catalyst::View';
 
@@ -46,13 +47,13 @@ sub COMPONENT {
 
 sub ACCEPT_CONTEXT {
   my ($self, $c, %args) = @_;
-
-  my $args = $self->merge_config_hashes($self->config, \%args);
+  my $args = $c->Catalyst::Plugin::MapComponentDependencies::Utils::_expand_config(
+    $self->catalyst_component_name,
+      $self->merge_config_hashes($self->config, \%args));
 
   delete $args->{directives};
   delete $args->{template};
   delete $args->{template_src};
-
 
   my $key = blessed($self) ? refaddr($self) : $self;
   my $data = hash();
@@ -91,7 +92,10 @@ sub response {
     $res->headers->push_header(@headers);
   }
 
-  my %data = ($self->{data}->all, self=>$self);
+  my %data = (
+    $self->{data}->all,
+    views => +{ base => $self->{ctx}->view('Base') },  # really don't like this much but I need some sort of introspection API...
+    self => $self);
   
   if(ref($proto[0]) eq 'HASH') {
     %data = (%data, %{$proto[0]});

@@ -1,4 +1,4 @@
-requires 'Catalyst', '5.90103';
+requires 'Catalyst', '5.90104';
 requires 'Catalyst::ActionSignatures', '0.010';
 requires 'Catalyst::Model::DBIC::Schema', '0.65';
 requires 'Catalyst::Model::DataHash', '0.001';
@@ -42,4 +42,5 @@ on develop => sub {
   requires 'App::Ack', '2.14';
   requires 'Devel::Confess', '0.008000';
   requires 'Devel::Dwarn';
+  requires 'cpan-outdated';
 };

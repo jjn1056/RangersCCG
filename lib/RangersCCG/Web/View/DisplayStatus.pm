@@ -1,12 +1,29 @@
-use strict;
-use warnings;
-
 package RangersCCG::Web::View::DisplayStatus;
 
-use base 'Catalyst::View::Pure';
+use Moo;
+use Catalyst::Plugin::MapComponentDependencies::Utils ':ALL';
+
+extends 'Catalyst::View::Pure';
+
+has 'parent' => (is=>'ro', required=>1);
+
+sub set_game_info {
+  my ($self, $info) = @_;
+  my @directives = (
+    '#game-info' => {
+      'game' => [
+        '#current_move' => 'current_move',
+        '#winner' => 'winner',
+      ],
+    },
+  );
+  $self->process($info, @directives); #TBD, needs doing in Template::Pure
+}
 
 __PACKAGE__->config(
+  parent => FromView('Base'),
   template => qq[
+    <?pure-overlay src='self.parent' title='title' body='body'?>
     <html>
       <head>
         <title>Rangers CCG - Forces of Light Status</title>
@@ -15,8 +32,8 @@ __PACKAGE__->config(
         <section id="game-info">
         <h1>Game Information</h1>
           <dl>
-            <dt>Game Move</dt><dd id="game-move">??</dd>
-            <dt>Who's Turn?</dt><dd id="whos-turn">??</dd>
+            <dt>Current Move</dt><dd id="current_move">??</dd>
+            <dt>Who's Turn?</dt><dd id="whos_turn">??</dd>
             <dt>Has Winner?</dt><dd id="winner">??</dd>
           </dl>
         </section>
@@ -56,15 +73,20 @@ __PACKAGE__->config(
       </body>
     </html>
   ],
-  directives => sub {
-    my ($pure, $ctx) = @_;
+  directives => [
     '^html' => [
       {
         'title' => \'title',
         'body' => \'body',
+        'master' => 'self.parent'
       }, 
-      '.' => $ctx->view('Base'),
+      '.' => 'master',
     ],
-    '#game-move' => 'game.current_move',
-  },
+    '#game-info' => {
+      'game' => [
+        '#current_move' => 'current_move',
+        '#winner' => 'winner',
+      ],
+    },
+  ],
 );

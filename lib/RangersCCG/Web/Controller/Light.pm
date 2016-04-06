@@ -13,10 +13,10 @@ sub root :Via($parent) At($controller/...) { }
     $v->ok({
       game => {
         current_move => 0,
+        winner => 'N/A',
       },
     });
   }
-
 
 __PACKAGE__->meta->make_immutable;
 
