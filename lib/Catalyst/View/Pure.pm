@@ -26,7 +26,6 @@ sub COMPONENT {
   my $directives = delete $args->{directives};
 
   my $pure;
-  warn ref $directives;
   if(ref($directives) eq 'CODE') {
     $pure = Template::Pure->new(
       template=> $template, 

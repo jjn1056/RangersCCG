@@ -11,6 +11,8 @@ __PACKAGE__->load_components(qw/
   TimeStamp
   InflateColumn::DateTime/);
 
+sub default_result_namespace { 'RangersCCG::Schema::Result' }
+
 sub TO_JSON {
   my $self = shift;
   return +{
