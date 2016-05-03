@@ -1,4 +1,5 @@
 use Test::DBIx::Class
+  -traits=>['Testpostgresql'],
   -schema_class => 'RangersCCG::Schema';
 
 my $config = {

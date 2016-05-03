@@ -7,7 +7,7 @@ use base 'Catalyst::View::Pure';
 
 __PACKAGE__->mk_accessors('init_time');
 
-sub time { scalar(localtime) }
+sub render_time { scalar(localtime) }
 
 __PACKAGE__->config(
   init_time => scalar(localtime),
@@ -22,15 +22,17 @@ __PACKAGE__->config(
       </head>
       <body>
         <h1>Content goes here!</h1>
-        <span id="time">current time</span>
-        ...<span id="init-time">start time</span>...
+        <div>
+          <span id="time">Page Rendered On: </span><br/>
+          <span id="init-time">Server Started On: </span>
+        </div>
       </body>
     </html>
   ],
   directives => [
     'title' => 'title',
     '^body h1' => 'body',
-    '#time' => 'self.time',
-    '#init-time' => 'self.init_time',
+    '#time+' => 'view.render_time',
+    '#init-time+' => 'view.init_time',
   ],
 );

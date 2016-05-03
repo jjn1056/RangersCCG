@@ -7,23 +7,12 @@ extends 'Catalyst::View::Pure';
 
 has 'parent' => (is=>'ro', required=>1);
 
-sub set_game_info {
-  my ($self, $info) = @_;
-  my @directives = (
-    '#game-info' => {
-      'game' => [
-        '#current_move' => 'current_move',
-        '#winner' => 'winner',
-      ],
-    },
-  );
-  $self->process($info, @directives); #TBD, needs doing in Template::Pure
-}
-
 __PACKAGE__->config(
   parent => FromView('Base'),
-  template => qq[
-    <?pure-overlay src='self.parent' title='title' body='body'?>
+  template => q[
+    <?pure-overlay src='view.parent' 
+      title=\'title'
+      body=\'body'?>
     <html>
       <head>
         <title>Rangers CCG - Forces of Light Status</title>
@@ -74,14 +63,6 @@ __PACKAGE__->config(
     </html>
   ],
   directives => [
-    '^html' => [
-      {
-        'title' => \'title',
-        'body' => \'body',
-        'master' => 'self.parent'
-      }, 
-      '.' => 'master',
-    ],
     '#game-info' => {
       'game' => [
         '#current_move' => 'current_move',

@@ -20,7 +20,7 @@ requires 'DBIx::Class::Helpers', '2.031000';
 requires 'DBIx::Class::Schema::Loader', '0.07045';
 requires 'DBD::Pg', '3.5.3';
 
-requires 'Template::Pure', '0.013';
+requires 'Template::Pure', '0.014';
 requires 'Data::Perl';
 requires 'Scalar::Util';
 

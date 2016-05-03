@@ -3,10 +3,10 @@ use warnings;
 
 package Catalyst::View::Pure;
 
-use Template::Pure;
 use Data::Perl qw/hash/;
 use Scalar::Util qw/blessed refaddr/;
 use Catalyst::Plugin::MapComponentDependencies::Utils;
+use Catalyst::Utils;
 
 use base 'Catalyst::View';
 
@@ -23,20 +23,16 @@ sub COMPONENT {
     die "Can't find a template for your View";
   }
 
+  my $pure_class = exists($args->{pure_class}) ?
+    delete($args->{pure_class}) :
+    'Template::Pure';
+
+  Catalyst::Utils::ensure_class_loaded($pure_class);
+  
   my $directives = delete $args->{directives};
-
-  my $pure;
-  if(ref($directives) eq 'CODE') {
-    $pure = Template::Pure->new(
-      template=> $template, 
-      directives_cb=>[]);
-
-    $pure->{directives_cb} = $directives;
-  } else {
-    $pure = Template::Pure->new(
-      template=> $template, 
-      directives=>$directives);
-  }
+  my $pure = $pure_class->new(
+    template=> $template, 
+    directives=>$directives);
 
   return bless +{
     pure => $pure,
@@ -91,10 +87,7 @@ sub response {
     $res->headers->push_header(@headers);
   }
 
-  my %data = (
-    $self->{data}->all,
-    views => +{ base => $self->{ctx}->view('Base') },  # really don't like this much but I need some sort of introspection API...
-    self => $self);
+  my %data = ($self->{data}->all, view=>$self);
   
   if(ref($proto[0]) eq 'HASH') {
     %data = (%data, %{$proto[0]});
@@ -102,15 +95,12 @@ sub response {
 
   $res->status($status) unless $res->status != 200;
   $res->content_type('text/html') unless $res->content_type;
-  $res->body( $self->render_with_extra_directives(\%data) );
+  $res->body($self->render(\%data));
 }
 
-sub render_with_extra_directives {
+sub render {
   my ($self, $data) = @_;
-  my @extra_directives = $self->{pure}{directives_cb}->($self->{pure}, $self->{ctx})
-    if exists $self->{pure}{directives_cb};
-  
-  return $self->{pure}->render($data, \@extra_directives)
+  return $self->{pure}->render($data)
 }
 
 sub TO_HTML {
@@ -122,11 +112,11 @@ sub TO_HTML {
 
   my %data = (
     $self->{data}->all,
-    self => $self,
+    view => $self,
     %{$data||+{}} );
 
   return $self->{pure}->encoded_string(
-    $self->render_with_extra_directives(\%data));
+    $self->render(\%data));
 }
 
 # Send Helpers.
