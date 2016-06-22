@@ -7,9 +7,8 @@ extends 'Catalyst::View::Template::Pure';
 has 'game' =>  (is=>'ro', required=>1);
 
 __PACKAGE__->config(
-  layout_view_name => 'Base', 
   template => q[
-    <?pure-overlay src='layout' 
+    <?pure-overlay src='Views.Base' 
       title=\'title'
       body=\'body'?>
     <html>

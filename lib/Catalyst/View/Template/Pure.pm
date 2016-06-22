@@ -4,7 +4,6 @@ use warnings;
 package Catalyst::View::Template::Pure;
 
 use Scalar::Util qw/blessed refaddr/;
-use Catalyst::Plugin::MapComponentDependencies::Utils;
 use Catalyst::Utils;
 
 use base 'Catalyst::View';
@@ -41,9 +40,7 @@ sub COMPONENT {
 
 sub ACCEPT_CONTEXT {
   my ($self, $c, %args) = @_;
-  my $args = $c->Catalyst::Plugin::MapComponentDependencies::Utils::_expand_config(
-    $self->catalyst_component_name,
-      $self->merge_config_hashes($self->config, \%args));
+  my $args = $self->merge_config_hashes($self->config, \%args);
 
   delete $args->{directives};
   delete $args->{template};
@@ -95,21 +92,22 @@ sub render {
 
 sub TO_HTML {
   my ($self, $pure, $dom, $data) = @_;
-  use Devel::Dwarn;
-  Dwarn keys %$data;
-  Dwarn $self->catalyst_component_name;
   return $self->{pure}->encoded_string(
     $self->render($self));
 }
 
-sub layout_view_name { shift->{layout_view_name} }
-
-sub layout {
+sub Views {
   my $self = shift;
-  return sub {
-    my ($pure, $dom, $data) = @_;
-    $self->{ctx}->view($self->layout_view_name, %$data);
-  };
+  my %view_dispatch = (
+    map {
+      my $v = $_;
+      $v => sub {
+        my ($pure, $dom, $data) = @_;
+        $self->{ctx}->view($v, %$data);
+      }
+    } ($self->{ctx}->views)
+  );
+  return \%view_dispatch;
 }
 
 # Send Helpers.

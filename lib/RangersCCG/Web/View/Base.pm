@@ -1,11 +1,10 @@
-use strict;
-use warnings;
-
 package RangersCCG::Web::View::Base;
 
-use base 'Catalyst::View::Template::Pure';
+use Moo;
 
-__PACKAGE__->mk_accessors('init_time','title','body');
+extends 'Catalyst::View::Template::Pure';
+
+has [qw/init_time title body/] => (is=>'ro', required=>1);
 
 sub render_time { scalar(localtime) }
 
