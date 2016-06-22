@@ -1,16 +1,15 @@
 package RangersCCG::Web::View::DisplayStatus;
 
 use Moo;
-use Catalyst::Plugin::MapComponentDependencies::Utils ':ALL';
 
-extends 'Catalyst::View::Pure';
+extends 'Catalyst::View::Template::Pure';
 
-has 'parent' => (is=>'ro', required=>1);
+has 'game' =>  (is=>'ro', required=>1);
 
 __PACKAGE__->config(
-  parent => FromView('Base'),
+  layout_view_name => 'Base', 
   template => q[
-    <?pure-overlay src='view.parent' 
+    <?pure-overlay src='layout' 
       title=\'title'
       body=\'body'?>
     <html>

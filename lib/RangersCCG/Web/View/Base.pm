@@ -3,9 +3,9 @@ use warnings;
 
 package RangersCCG::Web::View::Base;
 
-use base 'Catalyst::View::Pure';
+use base 'Catalyst::View::Template::Pure';
 
-__PACKAGE__->mk_accessors('init_time');
+__PACKAGE__->mk_accessors('init_time','title','body');
 
 sub render_time { scalar(localtime) }
 
@@ -32,7 +32,7 @@ __PACKAGE__->config(
   directives => [
     'title' => 'title',
     '^body h1' => 'body',
-    '#time+' => 'view.render_time',
-    '#init-time+' => 'view.init_time',
+    '#time+' => 'render_time',
+    '#init-time+' => 'init_time',
   ],
 );

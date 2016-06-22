@@ -1,4 +1,4 @@
-requires 'Catalyst', '5.90104';
+requires 'Catalyst', '5.90105';
 requires 'Catalyst::ActionSignatures', '0.010';
 requires 'Catalyst::Model::DBIC::Schema', '0.65';
 requires 'Catalyst::Model::DataHash', '0.001';
@@ -20,7 +20,7 @@ requires 'DBIx::Class::Helpers', '2.031000';
 requires 'DBIx::Class::Schema::Loader', '0.07045';
 requires 'DBD::Pg', '3.5.3';
 
-requires 'Template::Pure', '0.014';
+requires 'Template::Pure', '0.017';
 requires 'Data::Perl';
 requires 'Scalar::Util';
 
