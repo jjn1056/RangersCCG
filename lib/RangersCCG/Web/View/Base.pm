@@ -10,6 +10,14 @@ sub render_time { scalar(localtime) }
 
 __PACKAGE__->config(
   init_time => scalar(localtime),
+  components => +{
+    timestamp => sub {
+      my ($pure, %params) = @_;
+      use Devel::Dwarn;
+      Dwarn \@_;
+      die;
+    },
+  },
   template => qq[
     <!doctype html>
     <html lang="en">
@@ -22,7 +30,7 @@ __PACKAGE__->config(
       <body>
         <h1>Content goes here!</h1>
         <div>
-          <span id="time">Page Rendered On: </span><br/>
+          <span id="time">Page Rendered On: <pure-timestamp /> </span><br/>
           <span id="init-time">Server Started On: </span>
         </div>
       </body>
@@ -31,7 +39,7 @@ __PACKAGE__->config(
   directives => [
     'title' => 'title',
     '^body h1' => 'body',
-    '#time+' => 'render_time',
+    #   '#time+' => 'render_time',
     '#init-time+' => 'init_time',
   ],
 );

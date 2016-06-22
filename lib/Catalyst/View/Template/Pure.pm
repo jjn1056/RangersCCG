@@ -28,9 +28,13 @@ sub COMPONENT {
   Catalyst::Utils::ensure_class_loaded($pure_class);
   
   my $directives = delete $args->{directives};
+  my $components = delete $args->{components};
   my $pure = $pure_class->new(
-    template=> $template, 
-    directives=>$directives);
+    components => $components,
+    template => $template, 
+    directives => $directives,
+    %$args,
+  );
 
   return bless +{
     pure => $pure,
@@ -59,6 +63,7 @@ sub ACCEPT_CONTEXT {
       );
     } 
   } else {
+    # This should probably die
     return ref($self)->new(
       %{$args},
       %{$c->stash},
