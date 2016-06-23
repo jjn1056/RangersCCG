@@ -11,65 +11,60 @@ use base 'Catalyst::View';
 sub COMPONENT {
   my ($class, $app, $args) = @_;
   $args = $class->merge_config_hashes($class->config, $args);
-
-  my $template;
-  if(exists($args->{template})) {
-    $template = delete ($args->{template});
-  } elsif(exists($args->{template_src})) {
-    $template = $app->config->{root}->file(delete $args->{template_src})->slurp;
-  } else {
-    die "Can't find a template for your View";
-  }
-
-  my $pure_class = exists($args->{pure_class}) ?
-    delete($args->{pure_class}) :
-    'Template::Pure';
-
-  Catalyst::Utils::ensure_class_loaded($pure_class);
-  
-  my $directives = delete $args->{directives};
-  my $components = delete $args->{components};
-  my $pure = $pure_class->new(
-    components => $components,
-    template => $template, 
-    directives => $directives,
-    %$args,
-  );
-
-  return bless +{
-    pure => $pure,
-    %$args,
-  }, $class;
+  $class->on_init($app, $args) if $class->can('on_init');
+  return bless $args, $class;
 }
 
 sub ACCEPT_CONTEXT {
   my ($self, $c, %args) = @_;
   my $args = $self->merge_config_hashes($self->config, \%args);
 
-  delete $args->{directives};
-  delete $args->{template};
-  delete $args->{template_src};
+  my $template;
+  if(exists($args->{template})) {
+    $template = delete ($args->{template});
+  } elsif(exists($args->{template_src})) {
+    $template = $c->config->{root}->file(delete $args->{template_src})->slurp;
+  } else {
+    die "Can't find a template for your View";
+  }
+
+  my $directives = delete $args->{directives};
+  my $pure_class = exists($args->{pure_class}) ?
+    delete($args->{pure_class}) :
+    'Template::Pure';
+
+  Catalyst::Utils::ensure_class_loaded($pure_class);
 
   my $key = blessed($self) ? refaddr($self) : $self;
 
   if(blessed $c) {
     return $c->stash->{"__Pure_${key}"} ||= do {
-      $self->on_response($c) if $self->can('on_response');
-      ref($self)->new(
+      $self->before_build($c, %$args) if $self->can('before_build');
+      my $pure = $pure_class->new(
+        template => $template,
+        directives => $directives,
+        components => +{
+          map {
+            my $v = $_;
+            lc($v) => sub {
+            my ($pure, %params) = @_;
+            return $c->view($v, %params);
+          } } ($c->views)
+        },
+        %$args,
+      );
+      
+      my $new = ref($self)->new(
         %{$args},
         %{$c->stash},
         ctx => $c,
-        pure => $self->{pure},
+        pure => $pure,
       );
+      $new->after_build($c) if $new->can('after_build');
+      return $new;
     } 
   } else {
-    # This should probably die
-    return ref($self)->new(
-      %{$args},
-      %{$c->stash},
-      app => $c,
-      pure => $self->{pure},
-    );
+    die "Can't make this class without a context";
   }
 }
 
@@ -85,14 +80,18 @@ sub response {
     $res->headers->push_header(@headers);
   }
 
+  $self->on_response($self->{ctx},$res) if $self->can('on_response');
+
   $res->status($status) unless $res->status != 200;
   $res->content_type('text/html') unless $res->content_type;
-  $res->body($self->render($self));
+  $res->body($self->render);
 }
 
 sub render {
   my ($self, $data) = @_;
-  return $self->{pure}->render($data)
+  $self->before_render($self->{ctx}) if $self->can('before_render');
+  # quite possible I should do something with $data...
+  return $self->{pure}->render($self)
 }
 
 sub TO_HTML {
@@ -115,6 +114,11 @@ sub Views {
   return \%view_dispatch;
 }
 
+# Proxy these here for now.  I assume eventually will nee
+# a subclass just for components
+sub style_fragment { shift->{pure}->style_fragment }
+sub script_fragment { shift->{pure}->script_fragment }
+
 # Send Helpers.
 foreach my $helper( grep { $_=~/^http/i} @HTTP::Status::EXPORT_OK) {
   my $subname = lc $helper;
@@ -127,6 +131,5 @@ foreach my $helper( grep { $_=~/^http/i} @HTTP::Status::EXPORT_OK) {
       \$self->{ctx}->detach;
     }];
 }
-
 
 1;
