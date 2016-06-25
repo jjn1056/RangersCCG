@@ -1,13 +1,13 @@
 use strict;
 use warnings;
 
-package RangersCCG::Schema::Result::Class;
+package RangersCCG::Schema::Result::Side;
 
 use base 'RangersCCG::Schema::Result';
 
-__PACKAGE__->table('class');
+__PACKAGE__->table('side');
 __PACKAGE__->add_columns(
-  class_id => {
+  side_id => {
     data_type => 'integer',
     is_auto_increment => 1,
   },
@@ -17,22 +17,29 @@ __PACKAGE__->add_columns(
   },
 );
 
-__PACKAGE__->set_primary_key('class_id');
+__PACKAGE__->set_primary_key('side_id');
 __PACKAGE__->add_unique_constraint([ 'label' ]);
 
 __PACKAGE__->has_many(
   character_rs => '::Character',
-  { 'foreign.fk_class_id' => 'self.class_id' });
+  { 'foreign.fk_side_id' => 'self.side_id' });
+
+__PACKAGE__->has_many(
+  game_player_side_rs => '::GamePlayerSide',
+  { 'foreign.fk_side_id' => 'self.side_id' });
+
+__PACKAGE__->many_to_many('game_rs' => 'game_player_side_rs', 'game');
+__PACKAGE__->many_to_many('player_rs' => 'game_player_side_rs', 'player');
 
 1;
 
 =head1 TITLE
 
-RangersCCG::Schema::Result::Class - A Ranger CCG Character Class
+RangersCCG::Schema::Result::Side - The side of the game 
 
 =head1 DESCRIPTION
 
-A Class defines some aspects of what a character card can do
+A Side that a character card or player is associated with
 
 =head1 RELATIONSHIPS
 

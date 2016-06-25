@@ -1,12 +1,6 @@
 use strict;
 use warnings;
 
-{
-  package DBIx::Class::Storage::DBI::SQLite;
-
-  sub _dbh_get_autoinc_seq {
-  }
-}
 package RangersCCG::Schema::Result::Character;
 
 use base 'RangersCCG::Schema::Result';
@@ -17,7 +11,7 @@ __PACKAGE__->add_columns(
     data_type => 'integer',
     is_auto_increment => 1,
   },
-  fk_set_id => {
+  fk_side_id => {
     data_type => 'integer',
     is_foreign_key => 1,
   },
@@ -26,6 +20,9 @@ __PACKAGE__->add_columns(
     size => '40',
   },
   attack => {
+    data_type => 'integer',
+  },
+  has_leader_attack_bonus => {
     data_type => 'integer',
   },
   can_initiate_combat => {
@@ -38,34 +35,26 @@ __PACKAGE__->add_columns(
     data_type => 'integer',
     is_foreign_key => 1,
   },
-  fk_class_id => {
-    data_type => 'integer',
-    is_foreign_key => 1,
-  },
-  fk_combat_role_id => {
-    data_type => 'integer',
-    is_foreign_key => 1,
-  },
 );
 
-__PACKAGE__->set_primary_key('character_id', 'fk_set_id');
+__PACKAGE__->set_primary_key('character_id', 'fk_side_id');
 __PACKAGE__->add_unique_constraint([ 'name' ]);
 
 __PACKAGE__->belongs_to(
-  set => '::Set',
-  { 'foreign.set_id' => 'self.fk_set_id' });
+  side => '::Side',
+  { 'foreign.side_id' => 'self.fk_side_id' });
 
 __PACKAGE__->belongs_to(
   race => '::Race',
   { 'foreign.race_id' => 'self.fk_race_id' });
 
-__PACKAGE__->belongs_to(
-  class => '::Class',
-  { 'foreign.class_id' => 'self.fk_class_id' });
+__PACKAGE__->has_many(
+  character_attribute_rs => '::CharacterAttribute',
+  { 'foreign.fk_character_id' => 'self.character_id',
+    'foreign.fk_side_id' => 'self.fk_side_id',
+  });
 
-__PACKAGE__->belongs_to(
-  combat_role => '::CombatRole',
-  { 'foreign.combat_role_id' => 'self.fk_combat_role_id' });
+__PACKAGE__->many_to_many('attribute_rs' => 'character_attribute_rs', 'attribute');
 
 1;
 

@@ -51,27 +51,22 @@ sub setup {
     Race => [
       ['label'],
       ['human'],
+
     ]);
 
   $self->populate(
-    Set => [
+    Side => [
       ['label'],
       ['light'],
-      ['dark'],
     ]);
 
   $self->populate(
-    Class => [
+    Attribute => [
       ['label'],
       ['ranger'],
       ['shaman'],
       ['herald'],
       ['healer'],
-    ]);
-
-  $self->populate(
-    CombatRole => [
-      ['label'],
       ['archer'],
       ['warrior'],
       ['shieldman'],
@@ -83,35 +78,74 @@ sub setup {
     ]);
 
   my @light = (
-    ['Drustan Lorne', 2, 1, 1, 'ranger', 'human',  'archer'],
-    ['Thane', 2, 1, 1, 'ranger', 'human', 'shield man'],
-    ['Wolf ', 2, 1, 1, 'ranger','human','lieutenant'],
-    ['Ivar', 1, 1, 1, 'ranger','human','archer'],
-    ['Corser', 1, 1, 1, 'ranger','human','warrior'],
-    ['Flynt Tanner', 2, 1, 1,'ranger','human','shield man'],
-    ['Garrin', 2, 1, 1, 'ranger','human','falconer'],
-    ['Sven', 2, 1, 1, 'ranger','human','berserker'],
-    ['Kier', 1, 1, 1, 'ranger','human','warrior'],
-    ['Soren Fell', 1, 1, 1, 'ranger','human','recruit'],
-    ['Malde', 1, 1, 1, 'shaman','human','caster'],
-    ['Amundsen', 1, 1, 1, 'herald','human','historian'],
-    ['Kani', 0, 0, 0, 'healer','human','caster'],
+    ['Drustan Lorne', 2, 1, 1, 0, 'human',  [qw/ranger archer/]],
+    ['Thane', 2, 1, 1, 0, 'human', ['ranger','shield man']],
+    ['Wolf ', 2, 1, 1, 0, 'human', ['ranger','lieutenant']],
+    ['Ivar', 1, 1, 1, 0, 'human', ['ranger','archer']],
+    ['Corser', 1, 1, 1, 1, 'human', ['ranger','warrior']],
+    ['Flynt Tanner', 2, 1, 1, 0, 'human', ['ranger','shield man']],
+    ['Garrin', 2, 1, 1, 0, 'human', ['ranger','falconer']],
+    ['Sven', 2, 1, 1, 0, 'human', ['ranger','berserker']],
+    ['Kier', 1, 1, 1, 0, 'human',['ranger', 'warrior']],
+    ['Soren Fell', 1, 1, 1, 0, 'human',['ranger','recruit']],
+    ['Malde', 1, 1, 1, 0, 'human',['shaman','caster']],
+    ['Amundsen', 1, 1, 1, 0, 'human', ['herald','historian']],
+    ['Kani', 0, 0, 0, 0, 'human',['healer','caster']],
   );
 
-  my @characters = map {
+  my @light_side_characters = map {
     {
-      set => {label=>'light'},
+      side => {label=>'light'},
       name => $_->[0],
       attack => $_->[1],
       can_initiate_combat => $_->[2],
       operate_independently => $_->[3],
-      class => {label=>$_->[4]},
+      has_leader_attack_bonus => $_->[4],
       race => {label=>$_->[5]},
-      combat_role => {label=>$_->[6]}
+      character_attribute_rs => [map { +{attribute => {label=>$_}} } @{$_->[6]}],
     }
   } @light;
       
-  $self->populate(Character => \@characters);
+  $self->populate(Character => \@light_side_characters);
+
+  # Now the dark side!
+  $self->populate(
+    Side => [
+      ['label'],
+      ['dark'],
+    ]);
+
+  my @dark = (
+    ['Ooklar', 1, 1, 1, 1, 'greenskin orc',  ['warrior']],
+    ['Buga', 1, 1, 1, 0, 'greenskin orc',  ['warrior']],
+    ['Zulgar', 1, 1, 1, 0, 'greenskin orc',  ['archer']],
+    ['Thul\'ug', 2, 1, 1, 0, 'greenskin orc',  ['warrior']],
+    ['Tral', 1, 1, 1, 0, 'greenskin orc',  ['shaman', 'caster']],
+    ['Skrix', 0, 0, 0, 0, 'goblin',  ['war chanter', 'caster']],
+    ['Lacker Pyne', 1, 1, 1, 0, 'human',  ['bounty hunter']],
+    ['Turok', 1, 1, 1, 0, 'greenskin orc',  ['grunt']],
+    ['Gurog', 2, 1, 1, 0, 'black orc',  ['beastmaster']],
+    ['Durok', 1, 1, 1, 0, 'black orc',  ['Assasin']],
+    ['Kulta', 2, 1, 1, 0, 'black orc',  ['warlord']],
+    ['Grishurz', 1, 1, 1, 0, 'black orc',  ['warrior']],
+    ['Garak', 2, 1, 1, 0, 'black orc',  ['warrior']],
+  );
+
+  my @dark_side_characters = map {
+    {
+      side => {label=>'dark'},
+      name => $_->[0],
+      attack => $_->[1],
+      can_initiate_combat => $_->[2],
+      operate_independently => $_->[3],
+      has_leader_attack_bonus => $_->[4],
+      race => {label=>$_->[5]},
+      character_attribute_rs => [map { +{attribute => {label=>$_}} } @{$_->[6]}],
+    }
+  } @dark;
+      
+  $self->populate(Character => \@dark_side_characters);
+
 }
 
 1;

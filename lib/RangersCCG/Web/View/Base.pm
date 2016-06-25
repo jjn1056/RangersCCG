@@ -20,7 +20,7 @@ __PACKAGE__->config(
       <body>
         <h1>Content goes here!</h1>
         <div>
-          <span id="time">Page Rendered On: <pure-timestamp>aaa</pure-timestamp> </span><br/>
+          <span id="time">Page Rendered On: <pure-timestamp/> </span><br/>
           <span id="init-time">Server Started On: </span>
         </div>
       </body>
